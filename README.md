@@ -28,8 +28,8 @@ See COPYING
 
 Simply add this to your spring configuration.
 
-   <cxf:bus>
-     <cxf:outInterceptors>
-       <bean class="com.xebia.opensource.cxf.extensions.WebsphereSslOutInterceptor" />
-     </cxf:outInterceptors>
-   </cxf:bus>
+    <cxf:bus>
+      <cxf:outInterceptors>
+        <bean class="com.xebia.opensource.cxf.extensions.WebsphereSslOutInterceptor" />
+      </cxf:outInterceptors>
+    </cxf:bus>
