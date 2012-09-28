@@ -14,22 +14,20 @@ This out interceptor does interact with classes only included in the IBM® JDK, 
 ### Based on...
 The SSL out interceptor has been based on sources quoted in the javadoc of the relevant source files.
 
-### FAQ
-Q: Reflection is slow.
-A: Most reflection stuff is done on initialisation only, so the impact is negligible. No, I haven't measured this ;)
-
-### Copyright/trademarks
-Websphere® is a registered trademark of IBM®.
-
-### License
-See COPYING
-
 ### Usage
 
-Simply add this to your spring configuration.
+Simply add this to your spring configuration. If needed, you can set the sslAlias property using the standard Spring property notation.
 
     <cxf:bus>
       <cxf:outInterceptors>
         <bean class="com.xebia.opensource.cxf.extensions.WebsphereSslOutInterceptor" />
       </cxf:outInterceptors>
     </cxf:bus>
+
+Furthermore, I want to write a blog post on the configuration that has to be done on the Websphere® side. I will update this readme once that's done.
+
+### Copyright/trademarks
+Websphere® is a registered trademark of IBM®.
+
+### License
+See COPYING
