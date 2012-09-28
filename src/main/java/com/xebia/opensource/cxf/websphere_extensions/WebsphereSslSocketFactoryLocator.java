@@ -46,7 +46,8 @@ class WebsphereSslSocketFactoryLocator {
   private final Object jsseHelper;
   private final Method getSSLSocketFactoryMethod;
 
-  public WebsphereSslSocketFactoryLocator(String connectionInfoRemoteHost, String connectionInfoRemotePort, String connectionInfoDirection, String connectionInfoDirectionOutbound,
+  // Relaxed visibility for testing
+  WebsphereSslSocketFactoryLocator(String connectionInfoRemoteHost, String connectionInfoRemotePort, String connectionInfoDirection, String connectionInfoDirectionOutbound,
                                           Object jsseHelper, Method getSSLSocketFactoryMethod) {
     this.connectionInfoRemoteHost = connectionInfoRemoteHost;
     this.connectionInfoRemotePort = connectionInfoRemotePort;
