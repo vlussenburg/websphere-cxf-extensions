@@ -21,12 +21,15 @@ A: Most reflection stuff is done on initialisation only, so the impact is neglig
 ### Copyright/trademarks
 Websphere® is a registered trademark of IBM®.
 
+### License
+See COPYING
+
 ### Usage
 
 Simply add this to your spring configuration.
 
-  <cxf:bus>
-    <cxf:outInterceptors>
-      <bean class="com.xebia.opensource.cxf.extensions.WebsphereSslOutInterceptor" />
-    </cxf:outInterceptors>
-  </cxf:bus>
+   <cxf:bus>
+     <cxf:outInterceptors>
+       <bean class="com.xebia.opensource.cxf.extensions.WebsphereSslOutInterceptor" />
+     </cxf:outInterceptors>
+   </cxf:bus>
