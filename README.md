@@ -16,7 +16,7 @@ The SSL out interceptor has been based on sources quoted in the javadoc of the r
 
 ### Usage
 
-Simply add this to your spring configuration.
+Simply add this to your spring configuration. If needed, you can set the sslAlias property using the standard Spring property notation.
 
     <cxf:bus>
       <cxf:outInterceptors>
