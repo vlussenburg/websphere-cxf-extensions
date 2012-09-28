@@ -24,6 +24,8 @@ Simply add this to your spring configuration.
       </cxf:outInterceptors>
     </cxf:bus>
 
+Furthermore, I want to write a blog post on the configuration that has to be done on the Websphere® side. I will update this readme once that's done.
+
 ### Copyright/trademarks
 Websphere® is a registered trademark of IBM®.
 
