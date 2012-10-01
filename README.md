@@ -24,7 +24,7 @@ Simply add this to your spring configuration. If needed, you can set the sslAlia
       </cxf:outInterceptors>
     </cxf:bus>
 
-Furthermore, I want to write a blog post on the configuration that has to be done on the Websphere® side. I will update this readme once that's done.
+Also, see this blog post: http://blog.xebia.com/2012/10/01/mutual-ssl-authentication-using-websphere-application-server-and-cxf/
 
 ### Copyright/trademarks
 Websphere® is a registered trademark of IBM®.
