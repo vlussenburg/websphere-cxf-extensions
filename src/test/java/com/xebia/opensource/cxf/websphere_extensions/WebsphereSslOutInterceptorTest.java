@@ -16,108 +16,130 @@
  */
 package com.xebia.opensource.cxf.websphere_extensions;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import javax.net.ssl.HttpsURLConnection;
+
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.transport.http.HTTPConduit;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import static junit.framework.Assert.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+@RunWith(MockitoJUnitRunner.class)
 public class WebsphereSslOutInterceptorTest {
 
-  public static final String FAULTY_HELPER_FULL_QUALIFIED_CLASSNAME = FaultyJSSEHelper.class.getName();
+	public static final String FAULTY_HELPER_FULL_QUALIFIED_CLASSNAME = FaultyJSSEHelper.class.getName();
 
-  @Test
-  public void testThatClassDoesntInterfereOnNonWasMachine() {
-    WebsphereSslOutInterceptor interceptor = new WebsphereSslOutInterceptor() {
-      @Override
-      WebsphereSslSocketFactoryLocator createLocator() {
-        return new WebsphereSslSocketFactoryLocator(null, null, null, null, null, null);
-      }
-    };
+	@Mock
+	private Message message;
+	
+	@Mock
+	private Exchange exchange;
+	
+	@Mock
+	private HTTPConduit conduit;
+	
+	@Before
+	public void setUp() {
+		when(message.getExchange()).thenReturn(exchange);
+		when(exchange.getConduit(message)).thenReturn(conduit);
+	}
+	
+	@Test
+	public void testThatClassDoesntInterfereOnNonWasMachine() {
+		
+		WebsphereSslOutInterceptor interceptor = new WebsphereSslOutInterceptor() {
+			
+			@Override
+			WebsphereSslSocketFactoryLocator createLocator() {
+				return new WebsphereSslSocketFactoryLocator(null, null, null, null, null, null);
+			}
+		};
 
-    interceptor.handleMessage(null);
-  }
+		interceptor.handleMessage(null);
+	}
 
-  @Test
-  public void testHappyFlowInWASContainer() {
-    Message message = mock(Message.class);
-    Exchange exchange = mock(Exchange.class);
-    when(message.getExchange()).thenReturn(exchange);
+	@Test
+	public void testHappyFlowInWASContainer() {
 
-    HTTPConduit conduit = mock(HTTPConduit.class);
-    when(exchange.getConduit(message)).thenReturn(conduit);
+		TLSClientParameters tlsClientParameters = new TLSClientParameters();
+		
+		when(conduit.getTlsClientParameters()).thenReturn(tlsClientParameters);
+		when(message.get(Message.ENDPOINT_ADDRESS)).thenReturn("https://localhost");
 
-    TLSClientParameters tlsClientParameters = new TLSClientParameters();
-    when(conduit.getTlsClientParameters()).thenReturn(tlsClientParameters);
-    when(message.get(Message.ENDPOINT_ADDRESS)).thenReturn("https://localhost");
+		new WebsphereSslOutInterceptor().handleMessage(message);
 
-    new WebsphereSslOutInterceptor().handleMessage(message);
+		// Since our dummy implementation returns the default ssl socket factory
+		assertEquals(tlsClientParameters.getSSLSocketFactory(),	HttpsURLConnection.getDefaultSSLSocketFactory());
+	}
 
-    // Since our dummy implementation returns the default ssl socket factory
-    assertEquals(tlsClientParameters.getSSLSocketFactory(), HttpsURLConnection.getDefaultSSLSocketFactory());
-  }
+	@Test
+	public void testNonHttpsFlowInWASContainer() {
 
-  @Test
-  public void testNonHttpsFlowInWASContainer() {
-    Message message = mock(Message.class);
-    Exchange exchange = mock(Exchange.class);
-    when(message.getExchange()).thenReturn(exchange);
+		TLSClientParameters tlsClientParameters = new TLSClientParameters();
+		
+		when(conduit.getTlsClientParameters()).thenReturn(tlsClientParameters);
+		when(message.get(Message.ENDPOINT_ADDRESS)).thenReturn("http://localhost");
 
-    HTTPConduit conduit = mock(HTTPConduit.class);
-    when(exchange.getConduit(message)).thenReturn(conduit);
+		new WebsphereSslOutInterceptor().handleMessage(message);
 
-    TLSClientParameters tlsClientParameters = new TLSClientParameters();
-    when(conduit.getTlsClientParameters()).thenReturn(tlsClientParameters);
-    when(message.get(Message.ENDPOINT_ADDRESS)).thenReturn("http://localhost");
+		// http, insecure, so not set!
+		assertNull(tlsClientParameters.getSSLSocketFactory());
+	}
 
-    new WebsphereSslOutInterceptor().handleMessage(message);
+	@Test
+	public void invalidOrChangedJSSEHelperOutputsExceptionWithUsefulMessage() {
+		
+		try {
+			
+			// Override to JSSEClass that exists, but misses the constants and
+			// methods expected.
+			new WebsphereSslOutInterceptor() {
+				
+				@Override
+				WebsphereSslSocketFactoryLocator createLocator() {
+					return WebsphereSslSocketFactoryLocator.getInstanceWithClass(FAULTY_HELPER_FULL_QUALIFIED_CLASSNAME);
+				}
+			};
 
-    // http, insecure, so not set!
-    assertNull(tlsClientParameters.getSSLSocketFactory());
-  }
+			fail();
+			
+		} catch (RuntimeException runtimeException) {
+			assertEquals(FAULTY_HELPER_FULL_QUALIFIED_CLASSNAME + " found, but unable to create Websphere-specific configuration.", runtimeException.getMessage());
+		}
+	}
 
-  @Test
-  public void invalidOrChangedJSSEHelperOutputsExceptionWithUsefulMessage() {
-    try {
-      // Override to JSSEClass that exists, but misses the constants and methods expected.
-      new WebsphereSslOutInterceptor() {
-        @Override
-        WebsphereSslSocketFactoryLocator createLocator() {
-          return WebsphereSslSocketFactoryLocator.getInstanceWithClass(FAULTY_HELPER_FULL_QUALIFIED_CLASSNAME);
-        }
-      };
+	@Test
+	public void testOnlyHttpsIsSupported() throws MalformedURLException {
+		
+		WebsphereSslOutInterceptor interceptor = new WebsphereSslOutInterceptor() {
+			
+			@Override
+			WebsphereSslSocketFactoryLocator createLocator() {
+				return new WebsphereSslSocketFactoryLocator(null, null, null, null, null, null);
+			}
+		};
 
-      fail();
-    } catch (RuntimeException e) {
-      assertEquals(FAULTY_HELPER_FULL_QUALIFIED_CLASSNAME + " found, but unable to create Websphere-specific configuration.", e.getMessage());
-    }
-  }
+		assertFalse(interceptor.supports(new URL("ftp://hallo")));
+		assertFalse(interceptor.supports(new URL("http://hallo")));
+		assertTrue(interceptor.supports(new URL("https://hallo")));
+	}
 
-  @Test
-  public void testOnlyHttpsIsSupported() throws MalformedURLException {
-    WebsphereSslOutInterceptor interceptor = new WebsphereSslOutInterceptor() {
-      @Override
-      WebsphereSslSocketFactoryLocator createLocator() {
-        return new WebsphereSslSocketFactoryLocator(null, null, null, null, null, null);
-      }
-    };
-
-    assertFalse(interceptor.supports(new URL("ftp://hallo")));
-    assertFalse(interceptor.supports(new URL("http://hallo")));
-    assertTrue(interceptor.supports(new URL("https://hallo")));
-  }
-
-  @SuppressWarnings("unused")
-  private final static class FaultyJSSEHelper {
-  }
+	@SuppressWarnings("unused")
+	private final static class FaultyJSSEHelper {
+		
+	}
 }
