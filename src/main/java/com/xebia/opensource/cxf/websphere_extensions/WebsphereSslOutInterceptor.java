@@ -29,69 +29,83 @@ import org.slf4j.LoggerFactory;
 import java.net.URL;
 
 public class WebsphereSslOutInterceptor extends AbstractPhaseInterceptor<Message> {
-  private static final Logger LOGGER = LoggerFactory.getLogger(WebsphereSslOutInterceptor.class);
-  private static final String HTTPS_PROTOCOL_NAME = "https";
+	
+	private static final String HTTPS_PROTOCOL_NAME = "https";
 
-  private final WebsphereSslSocketFactoryLocator locator = createLocator();
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebsphereSslOutInterceptor.class);
 
-  private String sslAlias = null;
+	private final WebsphereSslSocketFactoryLocator locator = createLocator();
 
-  public WebsphereSslOutInterceptor() {
-    super(Phase.SETUP);
-  }
+	private String sslAlias = null;
 
-  public void handleMessage(Message message) throws Fault {
-    if (!locator.isEnabled()) {
-      return;
-    }
+	public WebsphereSslOutInterceptor() {
+		super(Phase.SETUP);
+	}
 
-    Conduit conduit = message.getExchange().getConduit(message);
-    if (!(conduit instanceof HTTPConduit)) {
-      // SSL config only applies to HTTPConduit, early-out.
-      return;
-    }
+	public void handleMessage(final Message message) throws Fault {
+		
+		if (!locator.isEnabled()) {
+			return;
+		}
 
-    HTTPConduit httpConduit = (HTTPConduit) conduit;
+		final Conduit conduit = message.getExchange().getConduit(message);
+		
+		if (!(conduit instanceof HTTPConduit)) {
+			// SSL config only applies to HTTPConduit, early-out.
+			return;
+		}
 
-    String endpoint = (String) message.get(Message.ENDPOINT_ADDRESS);
-    if (endpoint == null) {
-      LOGGER.warn("Null endpoint address encountered, unable to appy SSL configuration");
-      return;
-    }
+		final HTTPConduit httpConduit = (HTTPConduit) conduit;
 
-    try {
-      URL endpointUrl = new URL(endpoint);
+		final String endpoint = (String) message.get(Message.ENDPOINT_ADDRESS);
+		
+		if (endpoint == null) {
+			if (LOGGER.isWarnEnabled()) {
+				LOGGER.warn("Null endpoint address encountered, unable to appy SSL configuration");				
+			}
+			return;
+		}
 
-      if (supports(endpointUrl)) {
-        TLSClientParameters tlsClientParameters = getOrCreateAndSetTLSClientParameters(httpConduit);
-        tlsClientParameters.setSSLSocketFactory(locator.getSslFactory(sslAlias, endpointUrl));
-      }
-    } catch (Exception e) {
-      LOGGER.error("Got an exception getting the Websphere SSL Socket Factory: '{}'.", e.getMessage());
-      throw new Fault(e);
-    }
-  }
+		try {
+			
+			final URL endpointUrl = new URL(endpoint);
 
-  // Relaxed visibility for testing
-  boolean supports(URL endpointUrl) {
-    return HTTPS_PROTOCOL_NAME.equalsIgnoreCase(endpointUrl.getProtocol());
-  }
+			if (supports(endpointUrl)) {
+				final TLSClientParameters tlsClientParameters = getOrCreateAndSetTLSClientParameters(httpConduit);
+				tlsClientParameters.setSSLSocketFactory(locator.getSslFactory(sslAlias, endpointUrl));
+			}
+			
+		} catch (final Exception exception) {
+			if (LOGGER.isErrorEnabled()) {
+				LOGGER.error("Got an exception getting the Websphere SSL Socket Factory: '{}'.", exception.getMessage());
+			}
+			throw new Fault(exception);
+		}
+	}
+	
+	private TLSClientParameters getOrCreateAndSetTLSClientParameters(final HTTPConduit httpConduit) {
+		
+		TLSClientParameters tlsClientParameters = httpConduit.getTlsClientParameters();
+		
+		if (tlsClientParameters == null) {
+			tlsClientParameters = new TLSClientParameters();
+			httpConduit.setTlsClientParameters(tlsClientParameters);
+		}
+		
+		return tlsClientParameters;
+	}
 
-  private TLSClientParameters getOrCreateAndSetTLSClientParameters(HTTPConduit httpConduit) {
-    TLSClientParameters tlsClientParameters = httpConduit.getTlsClientParameters();
-    if (tlsClientParameters == null) {
-      tlsClientParameters = new TLSClientParameters();
-      httpConduit.setTlsClientParameters(tlsClientParameters);
-    }
-    return tlsClientParameters;
-  }
+	// Relaxed visibility for testing
+	boolean supports(final URL endpointUrl) {
+		return HTTPS_PROTOCOL_NAME.equalsIgnoreCase(endpointUrl.getProtocol());
+	}
 
-  // Relaxed visibility for testing
-  WebsphereSslSocketFactoryLocator createLocator() {
-    return WebsphereSslSocketFactoryLocator.getInstance();
-  }
+	// Relaxed visibility for testing
+	WebsphereSslSocketFactoryLocator createLocator() {
+		return WebsphereSslSocketFactoryLocator.getInstance();
+	}
 
-  public void setSslAlias(String sslAlias) {
-    this.sslAlias = sslAlias;
-  }
+	public void setSslAlias(final String sslAlias) {
+		this.sslAlias = sslAlias;
+	}
 }
