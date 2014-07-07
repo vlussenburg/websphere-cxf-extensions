@@ -86,9 +86,9 @@ class WebSphereSSLSocketFactoryLocator {
 		return jsseHelper != null;
 	}
 
-	public SSLSocketFactory getSslFactory(final String sslAlias, final URL endpointUrl)	throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	public SSLSocketFactory getSSLFactory(final String sslAlias, final URL endpointUrl)	throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		
-		final SSLSocketFactory factory = getSslSocketFactory(sslAlias, getConnectionInfo(endpointUrl));
+		final SSLSocketFactory factory = getSSLSocketFactory(sslAlias, getConnectionInfo(endpointUrl));
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Factory returned by JSSEHelper: {}", factory);			
@@ -167,7 +167,7 @@ class WebSphereSSLSocketFactoryLocator {
 		return connectionInfo;
 	}
 
-	private SSLSocketFactory getSslSocketFactory(final String sslAlias, final Map<String, String> connectionInfo) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	private SSLSocketFactory getSSLSocketFactory(final String sslAlias, final Map<String, String> connectionInfo) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		return (SSLSocketFactory) getSSLSocketFactoryMethod.invoke(jsseHelper, new Object[] {sslAlias, connectionInfo, null});
 	}
 

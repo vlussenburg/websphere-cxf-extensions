@@ -72,7 +72,7 @@ public class WebSphereSSLOutInterceptor extends AbstractPhaseInterceptor<Message
 
 			if (supports(endpointUrl)) {
 				final TLSClientParameters tlsClientParameters = getOrCreateAndSetTLSClientParameters(httpConduit);
-				tlsClientParameters.setSSLSocketFactory(locator.getSslFactory(sslAlias, endpointUrl));
+				tlsClientParameters.setSSLSocketFactory(locator.getSSLFactory(sslAlias, endpointUrl));
 			}
 			
 		} catch (final Exception exception) {
@@ -105,7 +105,7 @@ public class WebSphereSSLOutInterceptor extends AbstractPhaseInterceptor<Message
 		return WebSphereSSLSocketFactoryLocator.getInstance();
 	}
 
-	public void setSslAlias(final String sslAlias) {
+	public void setSSLAlias(final String sslAlias) {
 		this.sslAlias = sslAlias;
 	}
 }
