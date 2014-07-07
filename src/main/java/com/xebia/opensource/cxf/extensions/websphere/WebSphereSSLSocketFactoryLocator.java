@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package com.xebia.opensource.cxf.websphere_extensions;
+package com.xebia.opensource.cxf.extensions.websphere;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  *
  * @link http://stackoverflow.com/questions/7275063/how-to-set-up-apache-cxf-client-to-use-websphere-truststore-receiving-no-trus
  */
-class WebsphereSslSocketFactoryLocator {
+class WebSphereSSLSocketFactoryLocator {
 
 	private static final int PORT_UNDEFINED = -1;
 
@@ -40,7 +40,7 @@ class WebsphereSslSocketFactoryLocator {
 	
 	private static final String IBM_JSSE_HELPER = "com.ibm.websphere.ssl.JSSEHelper";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebsphereSslOutInterceptor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebSphereSSLOutInterceptor.class);
 
 	private final String connectionInfoRemoteHost;
 	
@@ -55,13 +55,13 @@ class WebsphereSslSocketFactoryLocator {
 	private final Method getSSLSocketFactoryMethod;
 
 	// Relaxed visibility for testing
-	WebsphereSslSocketFactoryLocator(
-		String connectionInfoRemoteHost, 
-		String connectionInfoRemotePort, 
-		String connectionInfoDirection, 
-		String connectionInfoDirectionOutbound, 
-		Object jsseHelper, 
-		Method getSSLSocketFactoryMethod) {
+	WebSphereSSLSocketFactoryLocator(
+		final String connectionInfoRemoteHost, 
+		final String connectionInfoRemotePort, 
+		final String connectionInfoDirection, 
+		final String connectionInfoDirectionOutbound, 
+		final Object jsseHelper, 
+		final Method getSSLSocketFactoryMethod) {
 		
 		this.connectionInfoRemoteHost = connectionInfoRemoteHost;
 		this.connectionInfoRemotePort = connectionInfoRemotePort;
@@ -71,12 +71,12 @@ class WebsphereSslSocketFactoryLocator {
 		this.getSSLSocketFactoryMethod = getSSLSocketFactoryMethod;
 	}
 
-	private WebsphereSslSocketFactoryLocator() {
+	private WebSphereSSLSocketFactoryLocator() {
 		this(null, null, null, null, null, null);
 	}
 
-	public static WebsphereSslSocketFactoryLocator getInstance() {
-		return WebsphereSslSocketFactoryLocator.getInstanceWithClass(IBM_JSSE_HELPER);
+	public static WebSphereSSLSocketFactoryLocator getInstance() {
+		return WebSphereSSLSocketFactoryLocator.getInstanceWithClass(IBM_JSSE_HELPER);
 	}
 
 	/**
@@ -86,9 +86,9 @@ class WebsphereSslSocketFactoryLocator {
 		return jsseHelper != null;
 	}
 
-	public SSLSocketFactory getSslFactory(final String sslAlias, final URL endpointUrl)	throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	public SSLSocketFactory getSSLFactory(final String sslAlias, final URL endpointUrl)	throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		
-		final SSLSocketFactory factory = getSslSocketFactory(sslAlias, getConnectionInfo(endpointUrl));
+		final SSLSocketFactory factory = getSSLSocketFactory(sslAlias, getConnectionInfo(endpointUrl));
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Factory returned by JSSEHelper: {}", factory);			
@@ -98,35 +98,35 @@ class WebsphereSslSocketFactoryLocator {
 	}
 
 	// Relaxed visibility for testing
-	static WebsphereSslSocketFactoryLocator getInstanceWithClass(final String ibmJsseHelperClass) {
+	static WebSphereSSLSocketFactoryLocator getInstanceWithClass(final String ibmJsseHelperClass) {
 		
-		ClassLoader classLoader = WebsphereSslSocketFactoryLocator.class.getClassLoader();
+		final ClassLoader classLoader = WebSphereSSLSocketFactoryLocator.class.getClassLoader();
 
 		final Class<?> jsseHelperClazz;
 		
 		try {
 			jsseHelperClazz = classLoader.loadClass(ibmJsseHelperClass);
-		} catch (ClassNotFoundException classNotFoundException) {
+		} catch (final ClassNotFoundException classNotFoundException) {
 			if (LOGGER.isInfoEnabled()) {
 				LOGGER.info("Unable to load {} class. Proceeding with non-Websphere SSL configuration.", ibmJsseHelperClass);				
 			}
-			return new WebsphereSslSocketFactoryLocator();
+			return new WebSphereSSLSocketFactoryLocator();
 		}
 
 		try {
 			
-			String connectionInfoRemoteHost = getConstant(jsseHelperClazz, "CONNECTION_INFO_REMOTE_HOST");
-			String connectionInfoRemotePort = getConstant(jsseHelperClazz, "CONNECTION_INFO_REMOTE_PORT");
-			String connectionInfoDirection = getConstant(jsseHelperClazz, "CONNECTION_INFO_DIRECTION");
-			String connectionInfoDirectionOutbound = getConstant(jsseHelperClazz, "DIRECTION_OUTBOUND");
+			final String connectionInfoRemoteHost = getConstant(jsseHelperClazz, "CONNECTION_INFO_REMOTE_HOST");
+			final String connectionInfoRemotePort = getConstant(jsseHelperClazz, "CONNECTION_INFO_REMOTE_PORT");
+			final String connectionInfoDirection = getConstant(jsseHelperClazz, "CONNECTION_INFO_DIRECTION");
+			final String connectionInfoDirectionOutbound = getConstant(jsseHelperClazz, "DIRECTION_OUTBOUND");
 			
-			Method method = jsseHelperClazz.getMethod("getInstance");
+			final Method method = jsseHelperClazz.getMethod("getInstance");
 			
-			Object jsseHelper = method.invoke(null);
+			final Object jsseHelper = method.invoke(null);
 
-			Class<?> configListenerClazz = classLoader.loadClass(IBM_SSL_CONFIG_CHANGE_LISTENER);
+			final Class<?> configListenerClazz = classLoader.loadClass(IBM_SSL_CONFIG_CHANGE_LISTENER);
 			
-			Method getSSLSocketFactoryMethod = jsseHelperClazz.getMethod("getSSLSocketFactory", new Class[] {
+			final Method getSSLSocketFactoryMethod = jsseHelperClazz.getMethod("getSSLSocketFactory", new Class[] {
 				String.class, 
 				Map.class, 
 				configListenerClazz
@@ -136,7 +136,7 @@ class WebsphereSslSocketFactoryLocator {
 				LOGGER.info("Successfully initialized CXF interceptor with Websphere SSL configuration.");				
 			}
 			
-			return new WebsphereSslSocketFactoryLocator(
+			return new WebSphereSSLSocketFactoryLocator(
 				connectionInfoRemoteHost, 
 				connectionInfoRemotePort, 
 				connectionInfoDirection, 
@@ -144,19 +144,19 @@ class WebsphereSslSocketFactoryLocator {
 				jsseHelper, 
 				getSSLSocketFactoryMethod
 			);
-		} catch (Exception exception) {
+		} catch (final Exception exception) {
 			throw new RuntimeException(ibmJsseHelperClass + " found, but unable to create Websphere-specific configuration.", exception);
 		}
 	}
 
 	private Map<String, String> getConnectionInfo(final URL endpointUrl) {
 		
-		Map<String, String> connectionInfo = new HashMap<String, String>();
+		final Map<String, String> connectionInfo = new HashMap<String, String>();
 
 		connectionInfo.put(connectionInfoDirection,	connectionInfoDirectionOutbound);
 		connectionInfo.put(connectionInfoRemoteHost, endpointUrl.getHost());
 		
-		int portToSet = (endpointUrl.getPort() == PORT_UNDEFINED) ? endpointUrl.getDefaultPort() : endpointUrl.getPort();
+		final int portToSet = (endpointUrl.getPort() == PORT_UNDEFINED) ? endpointUrl.getDefaultPort() : endpointUrl.getPort();
 		
 		connectionInfo.put(connectionInfoRemotePort, String.valueOf(portToSet));
 		
@@ -167,7 +167,7 @@ class WebsphereSslSocketFactoryLocator {
 		return connectionInfo;
 	}
 
-	private SSLSocketFactory getSslSocketFactory(final String sslAlias, final Map<String, String> connectionInfo) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	private SSLSocketFactory getSSLSocketFactory(final String sslAlias, final Map<String, String> connectionInfo) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		return (SSLSocketFactory) getSSLSocketFactoryMethod.invoke(jsseHelper, new Object[] {sslAlias, connectionInfo, null});
 	}
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package com.xebia.opensource.cxf.websphere_extensions;
+package com.xebia.opensource.cxf.extensions.websphere;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
@@ -38,8 +38,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.xebia.opensource.cxf.extensions.websphere.WebSphereSSLOutInterceptor;
+import com.xebia.opensource.cxf.extensions.websphere.WebSphereSSLSocketFactoryLocator;
+
 @RunWith(MockitoJUnitRunner.class)
-public class WebsphereSslOutInterceptorTest {
+public class WebsphereSSLOutInterceptorTest {
 
 	public static final String FAULTY_HELPER_FULL_QUALIFIED_CLASSNAME = FaultyJSSEHelper.class.getName();
 
@@ -61,11 +64,11 @@ public class WebsphereSslOutInterceptorTest {
 	@Test
 	public void testThatClassDoesntInterfereOnNonWasMachine() {
 		
-		WebsphereSslOutInterceptor interceptor = new WebsphereSslOutInterceptor() {
+		WebSphereSSLOutInterceptor interceptor = new WebSphereSSLOutInterceptor() {
 			
 			@Override
-			WebsphereSslSocketFactoryLocator createLocator() {
-				return new WebsphereSslSocketFactoryLocator(null, null, null, null, null, null);
+			WebSphereSSLSocketFactoryLocator createLocator() {
+				return new WebSphereSSLSocketFactoryLocator(null, null, null, null, null, null);
 			}
 		};
 
@@ -80,7 +83,7 @@ public class WebsphereSslOutInterceptorTest {
 		when(conduit.getTlsClientParameters()).thenReturn(tlsClientParameters);
 		when(message.get(Message.ENDPOINT_ADDRESS)).thenReturn("https://localhost");
 
-		new WebsphereSslOutInterceptor().handleMessage(message);
+		new WebSphereSSLOutInterceptor().handleMessage(message);
 
 		// Since our dummy implementation returns the default ssl socket factory
 		assertEquals(tlsClientParameters.getSSLSocketFactory(),	HttpsURLConnection.getDefaultSSLSocketFactory());
@@ -94,7 +97,7 @@ public class WebsphereSslOutInterceptorTest {
 		when(conduit.getTlsClientParameters()).thenReturn(tlsClientParameters);
 		when(message.get(Message.ENDPOINT_ADDRESS)).thenReturn("http://localhost");
 
-		new WebsphereSslOutInterceptor().handleMessage(message);
+		new WebSphereSSLOutInterceptor().handleMessage(message);
 
 		// http, insecure, so not set!
 		assertNull(tlsClientParameters.getSSLSocketFactory());
@@ -107,11 +110,11 @@ public class WebsphereSslOutInterceptorTest {
 			
 			// Override to JSSEClass that exists, but misses the constants and
 			// methods expected.
-			new WebsphereSslOutInterceptor() {
+			new WebSphereSSLOutInterceptor() {
 				
 				@Override
-				WebsphereSslSocketFactoryLocator createLocator() {
-					return WebsphereSslSocketFactoryLocator.getInstanceWithClass(FAULTY_HELPER_FULL_QUALIFIED_CLASSNAME);
+				WebSphereSSLSocketFactoryLocator createLocator() {
+					return WebSphereSSLSocketFactoryLocator.getInstanceWithClass(FAULTY_HELPER_FULL_QUALIFIED_CLASSNAME);
 				}
 			};
 
@@ -125,11 +128,11 @@ public class WebsphereSslOutInterceptorTest {
 	@Test
 	public void testOnlyHttpsIsSupported() throws MalformedURLException {
 		
-		WebsphereSslOutInterceptor interceptor = new WebsphereSslOutInterceptor() {
+		WebSphereSSLOutInterceptor interceptor = new WebSphereSSLOutInterceptor() {
 			
 			@Override
-			WebsphereSslSocketFactoryLocator createLocator() {
-				return new WebsphereSslSocketFactoryLocator(null, null, null, null, null, null);
+			WebSphereSSLSocketFactoryLocator createLocator() {
+				return new WebSphereSSLSocketFactoryLocator(null, null, null, null, null, null);
 			}
 		};
 
