@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package com.xebia.opensource.cxf.websphere_extensions;
+package com.xebia.opensource.cxf.extensions.websphere;
 
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.interceptor.Fault;
@@ -28,17 +28,17 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 
-public class WebsphereSslOutInterceptor extends AbstractPhaseInterceptor<Message> {
+public class WebSphereSSLOutInterceptor extends AbstractPhaseInterceptor<Message> {
 	
 	private static final String HTTPS_PROTOCOL_NAME = "https";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebsphereSslOutInterceptor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebSphereSSLOutInterceptor.class);
 
-	private final WebsphereSslSocketFactoryLocator locator = createLocator();
+	private final WebSphereSSLSocketFactoryLocator locator = createLocator();
 
 	private String sslAlias = null;
 
-	public WebsphereSslOutInterceptor() {
+	public WebSphereSSLOutInterceptor() {
 		super(Phase.SETUP);
 	}
 
@@ -101,8 +101,8 @@ public class WebsphereSslOutInterceptor extends AbstractPhaseInterceptor<Message
 	}
 
 	// Relaxed visibility for testing
-	WebsphereSslSocketFactoryLocator createLocator() {
-		return WebsphereSslSocketFactoryLocator.getInstance();
+	WebSphereSSLSocketFactoryLocator createLocator() {
+		return WebSphereSSLSocketFactoryLocator.getInstance();
 	}
 
 	public void setSslAlias(final String sslAlias) {

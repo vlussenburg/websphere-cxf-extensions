@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package com.xebia.opensource.cxf.websphere_extensions;
+package com.xebia.opensource.cxf.extensions.websphere;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  *
  * @link http://stackoverflow.com/questions/7275063/how-to-set-up-apache-cxf-client-to-use-websphere-truststore-receiving-no-trus
  */
-class WebsphereSslSocketFactoryLocator {
+class WebSphereSSLSocketFactoryLocator {
 
 	private static final int PORT_UNDEFINED = -1;
 
@@ -40,7 +40,7 @@ class WebsphereSslSocketFactoryLocator {
 	
 	private static final String IBM_JSSE_HELPER = "com.ibm.websphere.ssl.JSSEHelper";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebsphereSslOutInterceptor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebSphereSSLOutInterceptor.class);
 
 	private final String connectionInfoRemoteHost;
 	
@@ -55,7 +55,7 @@ class WebsphereSslSocketFactoryLocator {
 	private final Method getSSLSocketFactoryMethod;
 
 	// Relaxed visibility for testing
-	WebsphereSslSocketFactoryLocator(
+	WebSphereSSLSocketFactoryLocator(
 		String connectionInfoRemoteHost, 
 		String connectionInfoRemotePort, 
 		String connectionInfoDirection, 
@@ -71,12 +71,12 @@ class WebsphereSslSocketFactoryLocator {
 		this.getSSLSocketFactoryMethod = getSSLSocketFactoryMethod;
 	}
 
-	private WebsphereSslSocketFactoryLocator() {
+	private WebSphereSSLSocketFactoryLocator() {
 		this(null, null, null, null, null, null);
 	}
 
-	public static WebsphereSslSocketFactoryLocator getInstance() {
-		return WebsphereSslSocketFactoryLocator.getInstanceWithClass(IBM_JSSE_HELPER);
+	public static WebSphereSSLSocketFactoryLocator getInstance() {
+		return WebSphereSSLSocketFactoryLocator.getInstanceWithClass(IBM_JSSE_HELPER);
 	}
 
 	/**
@@ -98,9 +98,9 @@ class WebsphereSslSocketFactoryLocator {
 	}
 
 	// Relaxed visibility for testing
-	static WebsphereSslSocketFactoryLocator getInstanceWithClass(final String ibmJsseHelperClass) {
+	static WebSphereSSLSocketFactoryLocator getInstanceWithClass(final String ibmJsseHelperClass) {
 		
-		ClassLoader classLoader = WebsphereSslSocketFactoryLocator.class.getClassLoader();
+		ClassLoader classLoader = WebSphereSSLSocketFactoryLocator.class.getClassLoader();
 
 		final Class<?> jsseHelperClazz;
 		
@@ -110,7 +110,7 @@ class WebsphereSslSocketFactoryLocator {
 			if (LOGGER.isInfoEnabled()) {
 				LOGGER.info("Unable to load {} class. Proceeding with non-Websphere SSL configuration.", ibmJsseHelperClass);				
 			}
-			return new WebsphereSslSocketFactoryLocator();
+			return new WebSphereSSLSocketFactoryLocator();
 		}
 
 		try {
@@ -136,7 +136,7 @@ class WebsphereSslSocketFactoryLocator {
 				LOGGER.info("Successfully initialized CXF interceptor with Websphere SSL configuration.");				
 			}
 			
-			return new WebsphereSslSocketFactoryLocator(
+			return new WebSphereSSLSocketFactoryLocator(
 				connectionInfoRemoteHost, 
 				connectionInfoRemotePort, 
 				connectionInfoDirection, 
